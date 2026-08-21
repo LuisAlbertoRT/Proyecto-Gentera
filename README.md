@@ -4,7 +4,16 @@ Proyecto de ciencia de datos para predecir si un paciente egresara por mejoria. 
 
 ## Estructura del entregable
 
-Los tres archivos ejecutables principales estan en la carpeta base del proyecto:
+Los tre archivos ejecutables principales estan en la carpeta base del proyecto:
+
+### `Ejecutable enpy.py`
+
+Es la version ejecutavble de **Importacion y analisis.ipynb** en donde se realizacon todas las pruebas iniciales de los modelos incluyendo el tratamiento de la informacion a detalle, la eleccion de las variables, el modelado, la eleccion del modelo, la calibracion de los hiperparametos, metricas y salidas.
+
+
+
+
+
 
 ### `entrenar_modelo.py`
 
@@ -58,13 +67,13 @@ La API espera un JSON con las variables del modelo:
 
 ## Modulo de apoyo
 
-`funciones_1.py` contiene las funciones compartidas por los tres scripts: lectura de libros Excel, union con catalogos, construccion del objetivo, ingenieria de variables y preparacion de las columnas del modelo.
+`funciones_1.py` contiene las funciones compartidas por los dos scripts: lectura de libros Excel, union con catalogos, construccion del objetivo, ingenieria de variables y preparacion de las columnas del modelo.
 
-## Evidencia estadistica del modelo
+## Importacion y analisis.ipynb
 
-El notebook en la raiz conserva el analisis completo y la carpeta `Notebooks/Outputs` conserva sus resultados estadisticos:
 
-- `Importacion y analisis.ipynb`: notebook reproducible ubicado en la raiz, con lectura, catalogos, EDA, limpieza, ingenieria de variables, comparacion de modelos, calibracion y diagnostico de sesgo-varianza.
+
+Notebook reproducible ubicado en la raiz, con lectura, catalogos, EDA, limpieza, ingenieria de variables, comparacion de modelos, calibracion y diagnostico de sesgo-varianza.
 - `Notebooks/Outputs/comparacion_modelos.csv`: comparacion de escenarios y clasificadores.
 - `Notebooks/Outputs/comparacion_modelos_calibrados.csv`: resultados de la calibracion de hiperparametros.
 - `Notebooks/Outputs/reporte_sesgo_varianza.csv`: diferencia entre ROC-AUC de entrenamiento y validacion.
