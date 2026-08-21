@@ -13,7 +13,7 @@ pip install -r entregable/Docker/requirements.txt
 El libro debe incluir las hojas `Base de datos`, `Estatus` y `Enfermedades`. Las hojas `Ciudades` y `Gravedad` son opcionales.
 
 ```bash
-python entrenar_modelo.py --input Notebooks/Inputs/Hospitales.xlsx --output entregable/Salida
+python "4) entrenar_modelo.py" --input Notebooks/Inputs/Hospitales.xlsx --output entregable/Salida
 ```
 
 El entrenamiento usa el Random Forest seleccionado:
@@ -30,7 +30,7 @@ Genera el modelo `modelo_egreso_mejora.joblib`, datos preparados, metadatos y re
 ## 4. Ejecutar la API
 
 ```bash
-uvicorn api_fastapi:app --host 0.0.0.0 --port 8000
+docker compose -f entregable/Docker/docker-compose.yml up --build
 ```
 
 La API expone `GET /health`, `POST /predict` y la documentacion en `/docs`.

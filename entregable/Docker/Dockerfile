@@ -8,7 +8,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 COPY entregable/Docker/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY funciones_1.py entrenar_modelo.py api_fastapi.py README.md MODEL_CARD.md ./
+COPY ["funciones_1.py", "funciones_1.py"]
+COPY ["4) entrenar_modelo.py", "entrenar_modelo.py"]
+COPY ["5) api_fastapi.py", "api_fastapi.py"]
+COPY ["README.md", "README.md"]
+COPY ["MODEL_CARD.md", "MODEL_CARD.md"]
 COPY entregable/Salida /app/entregable/Salida
 
 RUN useradd --create-home --uid 10001 appuser \

@@ -160,7 +160,7 @@ entregable/Salida/metadata_modelo.json
 Notebooks/Outputs/
 ```
 
-La API se ejecuta con `api_fastapi.py` y expone `/health`, `/predict` y `/docs`. La ejecucion en Docker esta documentada en `entregable/Docker/README_AUTOMATIZACION.md`.
+La API se ejecuta con `5) api_fastapi.py` y expone `/health`, `/predict` y `/docs`. La ejecucion en Docker esta documentada en `entregable/Docker/README_AUTOMATIZACION.md`.
 
 ## 13. Mantenimiento recomendado
 

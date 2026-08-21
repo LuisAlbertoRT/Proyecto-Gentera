@@ -8,7 +8,7 @@ Consulta la [ficha tecnica del modelo](MODEL_CARD.md) para conocer su objetivo, 
 
 Los tre archivos ejecutables principales estan en la carpeta base del proyecto:
 
-### `Ejecutable_en_py.py`
+### `3) Ejecutable_en_py.py`
 
 Es la version ejecutable de **Importacion y analisis.ipynb** en donde se realizacon todas las pruebas iniciales de los modelos incluyendo el tratamiento de la informacion a detalle, la eleccion de las variables, el modelado, la eleccion del modelo, la calibracion de los hiperparametos, metricas y salidas.
 
@@ -17,11 +17,11 @@ Es la version ejecutable de **Importacion y analisis.ipynb** en donde se realiza
 La recomendacion si se quiere ver los analisis es **Ver el IPYNB o la presentacion ejecutiva disponible en la carpeta**
 
 ```bash
-python Ejecutable_en_py.py
+python "3) Ejecutable_en_py.py"
 ```
 
 
-### `entrenar_modelo.py`
+### `4) entrenar_modelo.py`
 
 Entrena nuevamente el modelo a partir de un archivo Excel. Realiza el flujo completo:
 
@@ -37,10 +37,10 @@ Entrena nuevamente el modelo a partir de un archivo Excel. Realiza el flujo comp
 Ejemplo:
 
 ```bash
-python entrenar_modelo.py --input Notebooks/Inputs/Hospitales.xlsx --output entregable/Salida
+python "4) entrenar_modelo.py" --input Notebooks/Inputs/Hospitales.xlsx --output entregable/Salida
 ```
 
-### `api_fastapi.py`
+### `5) api_fastapi.py`
 
 Expone el modelo como un servicio web para clasificar un paciente individual.
 
@@ -50,10 +50,10 @@ Endpoints disponibles:
 - `POST /predict`: devuelve prediccion, probabilidad y clasificacion.
 - `GET /docs`: documentacion interactiva de FastAPI.
 
-Ejemplo de inicio local:
+Ejemplo de inicio mediante Docker, recomendado para conservar el nombre numerado del documento:
 
 ```bash
-uvicorn api_fastapi:app --host 0.0.0.0 --port 8000
+docker compose -f entregable/Docker/docker-compose.yml up --build
 ```
 
 La API espera un JSON con las variables del modelo:
@@ -117,7 +117,20 @@ Desde la raiz del proyecto:
 docker compose -f entregable/Docker/docker-compose.yml up --build
 ```
 
-La API quedara disponible en `http://localhost:8000/docs`.
+La API quedara disponible en `http://localhost:8000/docs`. La imagen incluye el modelo, la ficha tecnica y el healthcheck del servicio; se ejecuta con un usuario no root.
+
+Para construir y ejecutar manualmente:
+
+```bash
+docker build -f entregable/Docker/Dockerfile -t gentera-api:latest .
+docker run --rm -p 8000:8000 gentera-api:latest
+```
+
+Verificacion rapida:
+
+```bash
+curl http://localhost:8000/health
+```
 
 Para instalar dependencias sin Docker:
 
