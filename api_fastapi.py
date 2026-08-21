@@ -21,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from modelo_utils import BASE_FEATURES, model_frame
 
-DEFAULT_MODEL_PATH = Path(__file__).resolve().parent / "modelo_egreso_mejora.joblib"
+DEFAULT_MODEL_PATH = Path(__file__).resolve().parent / "entregable" / "modelo_egreso_mejora.joblib"
 MODEL_PATH = Path(os.getenv("MODEL_PATH", str(DEFAULT_MODEL_PATH)))
 model = None
 app = FastAPI(title="Clasificador de egreso por mejoria", version="1.0.0")

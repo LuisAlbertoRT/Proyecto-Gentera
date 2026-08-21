@@ -5,7 +5,7 @@ Estos scripts implementan el flujo completo para predecir egreso por mejoria.
 ## 1. Instalar dependencias
 
 ```bash
-pip install -r requirements.txt
+pip install -r entregable/requirements.txt
 ```
 
 ## 2. Entrenar desde un Excel
@@ -13,7 +13,7 @@ pip install -r requirements.txt
 El libro debe incluir las hojas `Base de datos`, `Estatus` y `Enfermedades`. Las hojas `Ciudades` y `Gravedad` son opcionales.
 
 ```bash
-python entrenar_modelo.py --input Notebooks/Inputs/Hospitales.xlsx --output .
+python entrenar_modelo.py --input Notebooks/Inputs/Hospitales.xlsx --output entregable
 ```
 
 El entrenamiento usa el Random Forest seleccionado:
@@ -29,18 +29,12 @@ Genera el modelo `modelo_egreso_mejora.joblib`, datos preparados, metadatos y re
 ## 3. Predecir un nuevo Excel
 
 ```bash
-python predecir_nuevos.py --input Notebooks/Inputs/nuevos_pacientes.xlsx --model modelo_egreso_mejora.joblib --output predicciones.csv
+python predecir_nuevos.py --input Notebooks/Inputs/nuevos_pacientes.xlsx --model entregable/modelo_egreso_mejora.joblib --output entregable/predicciones.csv
 ```
 
 El archivo de salida conserva las columnas originales y agrega probabilidad, prediccion y clasificacion.
 
 ## 4. Ejecutar la API
-
-```bash
-uvicorn Notebooks.Outputs.api_fastapi:app --host 0.0.0.0 --port 8000
-```
-
-Desde la raiz, el comando equivalente para el script de la raiz es:
 
 ```bash
 uvicorn api_fastapi:app --host 0.0.0.0 --port 8000
@@ -75,11 +69,11 @@ uvicorn api_fastapi:app --host 0.0.0.0 --port 8000
 Construir y levantar la API:
 
 ```bash
-docker compose up --build
+docker compose -f entregable/docker-compose.yml up --build
 ```
 
 La API queda disponible en `http://localhost:8000/docs`. Para entrenar dentro de Docker:
 
 ```bash
-docker compose run --rm api python entrenar_modelo.py --input /app/data/Hospitales.xlsx --output /app/artifacts
+docker compose -f entregable/docker-compose.yml run --rm api python entrenar_modelo.py --input /app/data/Hospitales.xlsx --output /app/artifacts
 ```

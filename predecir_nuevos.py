@@ -18,8 +18,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", required=True, help="Excel nuevo")
     script_dir = Path(__file__).resolve().parent
-    parser.add_argument("--model", default=str(script_dir / "modelo_egreso_mejora.joblib"))
-    parser.add_argument("--output", default=str(script_dir / "predicciones_nuevas.csv"))
+    parser.add_argument("--model", default=str(script_dir / "entregable" / "modelo_egreso_mejora.joblib"))
+    parser.add_argument("--output", default=str(script_dir / "entregable" / "predicciones_nuevas.csv"))
     args = parser.parse_args()
 
     sheets = read_workbook(args.input, required_sheets={"Base de datos"})
