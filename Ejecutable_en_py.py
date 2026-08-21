@@ -1,27 +1,24 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[65]:
 
 
 #!pip install pandas 
 #!pip install openpyxl 
 
 
-# In[2]:
+# In[66]:
 
 
 import pandas as pd
 
 
-# In[ ]:
+# In[67]:
 
 
 DATA_PATH = "Notebooks/Inputs/Hospitales.xlsx"
 
-# Se abre el libro una sola vez para leer la base principal y los catalogos.
-# Mantener los catalogos separados permite usarlos para interpretar codigos
-# sin incorporarlos automaticamente como predictores del modelo.
 with pd.ExcelFile(DATA_PATH) as xls:
     df = pd.read_excel(xls, sheet_name="Base de datos")
     estatus = pd.read_excel(xls, sheet_name="Estatus")
@@ -30,13 +27,13 @@ with pd.ExcelFile(DATA_PATH) as xls:
     gravedad = pd.read_excel(xls, sheet_name="Gravedad")
 
 
-# In[4]:
+# In[68]:
 
 
 df["EDAD_CUADRADO"] = df["EDAD"] ** 2
 
 
-# In[5]:
+# In[69]:
 
 
 df["GRUPO_ETARIO"] = pd.cut(
@@ -46,17 +43,15 @@ df["GRUPO_ETARIO"] = pd.cut(
 )
 
 
-# In[6]:
+# In[70]:
 
 
 df
 
 
-# In[7]:
+# In[71]:
 
 
-# Unión de la base principal con el catálogo de enfermedades.
-# Se conserva cada registro de df y se agregan sus descripciones y nivel de gravedad.
 Columnas_deseadas = [
     "CODIGO_ENFERMEDAD",
     "CODIGO_ENFERMEDAD_DESC",
@@ -66,10 +61,9 @@ Columnas_deseadas = [
 
 
 
-# In[8]:
+# In[72]:
 
 
-# El catálogo debe tener un solo registro por código para no duplicar pacientes.
 disease_catalog = enfermedades[Columnas_deseadas].drop_duplicates("CODIGO_ENFERMEDAD")
 df = df.merge(disease_catalog, on="CODIGO_ENFERMEDAD", how="left", validate="many_to_one")
 df = df.rename(columns={
@@ -77,47 +71,19 @@ df = df.rename(columns={
     "Tipo de Problema": "TIPO_DE_PROBLEMA_MEDICO",
 })
 
-# Nombre solicitado para la variable indígena.
 if "INDIGENA" in df.columns and "ES_INDIGENA" not in df.columns:
     df["ES_INDIGENA"] = df["INDIGENA"]
 
-print(f"Filas después de la unión: {len(df):,}")
-print(f"Códigos sin correspondencia: {df['CODIGO_ENFERMEDAD_DESC'].isna().sum():,}")
 df.head(5)
 
 
-# ## Modelo para predecir egreso por mejora
-# 
-# El flujo siguiente parte de `df` y se organiza en cinco etapas: análisis exploratorio, limpieza y preparación, ingeniería de variables, entrenamiento/evaluación y guardado de artefactos. Ajusta `columna_objetivo` al nombre exacto de la variable que indica el motivo o tipo de egreso.
-
-# ### Descripcion del flujo
-# 
-# Este notebook documenta y ejecuta el ciclo completo de modelado. Cada etapa deja variables intermedias y resultados que permiten auditar el proceso antes de utilizar el modelo en produccion.
-# 
-# **1. Lectura de datos.** Se carga la hoja `Base de datos` como fuente de pacientes y se conservan por separado los catalogos `Estatus`, `Ciudades`, `Enfermedades` y `Gravedad`. La base contiene identificadores y mediciones; los catalogos permiten convertir codigos en informacion interpretable.
-# 
-# **2. Ingenieria inicial.** Se crean `EDAD_CUADRADO` y `GRUPO_ETARIO` para evaluar si una relacion no lineal o una agrupacion clinica mejora a la edad original. Estas variantes se comparan experimentalmente y no se incorporan al modelo final si no aportan evidencia.
-# 
-# **3. Uso de catalogos.** El catalogo `Estatus` define de forma reproducible la clase positiva. `Enfermedades` agrega descripcion, tipo de problema y nivel de gravedad. `Ciudades` agrega el nombre de la entidad. Las uniones son de tipo izquierdo y validan relaciones muchos-a-uno para evitar duplicar pacientes.
-# 
-# **4. Analisis exploratorio.** Se revisan tipos, nulos, cardinalidad, distribucion del objetivo, estadistica descriptiva y correlaciones. Esto identifica problemas de calidad y evita interpretar accuracy como unica medida cuando existe desbalance de clases.
-# 
-# **5. Limpieza y preparacion.** Se separan predictores y objetivo. La imputacion y el escalamiento se ajustan dentro de un `Pipeline`, usando solamente el conjunto de entrenamiento en cada validacion. Las variables categoricas se transforman con one-hot encoding y las desconocidas se ignoran.
-# 
-# **6. Entrenamiento y comparacion.** Se comparan baseline, regresion logistica, Random Forest y SVM lineal calibrada. La division de prueba es estratificada y la seleccion inicial usa validacion cruzada ROC-AUC.
-# 
-# **7. Control de overfitting.** El Random Forest se regulariza con profundidad maxima, hojas minimas y numero de variables por division. La seleccion final penaliza la brecha entre ROC-AUC de entrenamiento y validacion, buscando generalizacion y no solamente ajuste.
-# 
-# **8. Evaluacion y persistencia.** Se revisan ROC-AUC, F1, precision, recall, accuracy, Brier score, average precision, curvas de aprendizaje e importancia por permutacion. Finalmente se guardan datos, reportes, metadatos y el pipeline `joblib` reutilizable.
-# 
-
-# In[9]:
+# In[73]:
 
 
 #!pip install matplotlib seaborn  
 
 
-# In[ ]:
+# In[74]:
 
 
 from pathlib import Path
@@ -129,28 +95,25 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Como el notebook vive en la raiz, los reportes permanecen dentro de Notebooks/Outputs.
-# Esta carpeta concentra los resultados estadisticos y evita mezclarlos con los scripts.
 OUTPUT_DIR = Path("Notebooks/Outputs")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
-# In[11]:
+# In[75]:
 
 
-# El objetivo se construye desde MOTIVO_EGRESO y el catálogo estatus.
 columna_objetivo = "EGRESO_MEJORIA"
 columna_de_estatus = "MOTIVO_EGRESO"
 semilla = 42
 
 
-# In[12]:
+# In[76]:
 
 
 df.head(2)
 
 
-# In[13]:
+# In[77]:
 
 
 fila_mejoria = estatus[
@@ -161,20 +124,20 @@ fila_mejoria = estatus[
 ]
 
 
-# In[14]:
+# In[78]:
 
 
 fila_mejoria
 
 
-# In[15]:
+# In[79]:
 
 
 Codigo_mejoria = fila_mejoria["MOTIVO_EGRESO"].iloc[0]
 print(Codigo_mejoria)
 
 
-# In[16]:
+# In[80]:
 
 
 df = df.copy()
@@ -185,25 +148,14 @@ df[columna_objetivo] = (
 
 
 
-# In[17]:
+# In[81]:
 
 
 df.head(5)
 
 
-# ### Paso 0. Definicion del problema y construccion de la respuesta
-# 
-# El objetivo operativo es estimar, antes del egreso, si el paciente terminara su atencion por mejoria. La base contiene `MOTIVO_EGRESO` como codigo, pero el significado de cada codigo esta en el catalogo `Estatus`.
-# 
-# La fila cuyo texto contiene la palabra `mejor` se localiza automaticamente. Su codigo se guarda en `Codigo_mejoria` y se compara contra cada registro de la base para crear `EGRESO_MEJORIA`: `1` significa egreso por mejoria y `0` cualquier otro motivo.
-# 
-# Esta definicion evita escribir manualmente el codigo y hace que el proceso pueda repetirse con otro archivo que conserve la misma estructura. La columna `MOTIVO_EGRESO` no se usa como predictor porque contiene directamente la respuesta; incluirla produciria fuga de informacion y metricas artificialmente altas.
-# 
+# In[82]:
 
-# In[18]:
-
-
-# 1. Análisis exploratorio.
 
 descriptiva = pd.DataFrame({
     "tipo": df.dtypes.astype(str),
@@ -215,20 +167,20 @@ display(descriptiva)
 
 
 
-# In[19]:
+# In[83]:
 
 
 display(df[columna_objetivo].value_counts(dropna=False).to_frame("frecuencia"))
 
 
-# In[20]:
+# In[84]:
 
 
 numericos = df.select_dtypes(include=np.number).columns
 numericos
 
 
-# In[21]:
+# In[85]:
 
 
 if len(numericos) > 1:
@@ -239,34 +191,22 @@ if len(numericos) > 1:
     plt.show()
 
 
-# ### Paso 1. Analisis exploratorio de datos
-# 
-# El analisis exploratorio establece una linea base de calidad antes de entrenar. La tabla descriptiva informa el tipo de dato, cantidad y porcentaje de nulos y numero de valores distintos por columna.
-# 
-# La distribucion de `EGRESO_MEJORIA` permite conocer el desbalance entre pacientes que egresaron por mejoria y pacientes con otros motivos. Por ello se reportan ROC-AUC, F1, precision y recall, ademas de accuracy.
-# 
-# La estadistica descriptiva resume escala, dispersion y posibles valores extremos de las variables numericas. La matriz de correlacion sirve como inspeccion inicial de relaciones lineales, pero no decide por si sola que variables conservar.
-# 
-# Este bloque tambien permite identificar columnas que requeriran imputacion, variables casi constantes y posibles inconsistencias antes de construir el pipeline de entrenamiento.
-# 
-
-# In[22]:
+# In[86]:
 
 
 df_filtrado = df[df['EGRESO_MEJORIA'] == 1]
 df_filtrado.head(5)
 
 
-# In[23]:
+# In[87]:
 
 
 #!pip install scikit-learn joblib
 
 
-# In[24]:
+# In[88]:
 
 
-# 2. Limpieza y preparación de las variables explicativas.
 from sklearn.base import clone
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.compose import ColumnTransformer
@@ -290,7 +230,7 @@ from sklearn.svm import LinearSVC
 import joblib
 
 
-# In[25]:
+# In[89]:
 
 
 work = df.copy()
@@ -306,7 +246,7 @@ work["GRUPO_ETARIO"] = pd.cut(
 y = work[columna_objetivo].astype("int8")
 
 
-# In[26]:
+# In[90]:
 
 
 columnas_modelo = [
@@ -320,7 +260,7 @@ columnas_comunes_edad = [
 ]
 
 
-# In[27]:
+# In[91]:
 
 
 escenarios = {
@@ -343,7 +283,7 @@ escenarios = {
 }
 
 
-# In[28]:
+# In[92]:
 
 
 columnas_necesarias = set(columnas_modelo).union(
@@ -352,10 +292,9 @@ columnas_necesarias = set(columnas_modelo).union(
 columnas_necesarias
 
 
-# In[29]:
+# In[93]:
 
 
-# Auditoría de la lista base: no se incorporan predictores fuera de los escenarios definidos.
 X_original = work[columnas_modelo].copy()
 variable_report = pd.DataFrame(index=X_original.columns)
 variable_report["tipo"] = X_original.dtypes.astype(str)
@@ -371,21 +310,9 @@ display(variable_report)
 print("Escenarios a comparar:", escenarios)
 
 
-# ### Paso 2. Limpieza y preparacion de las variables
-# 
-# Esta etapa define el contrato de entrada del modelo. Las variables permitidas son dias de estancia, edad, genero, nivel de gravedad, IMC, indicador indigena, entidad y mes. Los codigos y descripciones auxiliares solo se prueban en escenarios experimentales.
-# 
-# `X_original` conserva una copia para auditar tipo, nulos, cardinalidad y motivos de exclusion. Las variables constantes no aportan informacion y se retiran de los escenarios; las columnas con nulos se mantienen porque el pipeline puede imputarlas sin eliminar pacientes.
-# 
-# El `ColumnTransformer` separa automaticamente variables numericas y categoricas. A las numericas les aplica mediana para faltantes y estandarizacion; a las categoricas les aplica la categoria mas frecuente y one-hot encoding. Todo se ajusta dentro del `Pipeline` para evitar fuga entre entrenamiento y validacion.
-# 
-# La division estratificada reserva el 20% de las observaciones para una prueba final con la misma proporcion de clases. La semilla fija hace reproducibles la particion, la validacion y el Random Forest.
-# 
-
-# In[30]:
+# In[94]:
 
 
-# 4. Prueba de variables adicionales y comparación de modelos.
 models = {
     "baseline": DummyClassifier(strategy="most_frequent"),
     "regresion_logistica": LogisticRegression(
@@ -417,7 +344,7 @@ models = {
 }
 
 
-# In[31]:
+# In[95]:
 
 
 entrenamiento, testeo = train_test_split(
@@ -429,7 +356,7 @@ y_test = y.iloc[testeo]
 
 
 
-# In[32]:
+# In[96]:
 
 
 cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=semilla)
@@ -442,7 +369,7 @@ trained_models = {}
 scenario_features = {}
 
 
-# In[33]:
+# In[97]:
 
 
 for scenario_name, requested_columns in escenarios.items():
@@ -467,7 +394,6 @@ for scenario_name, requested_columns in escenarios.items():
     ])
 
     for model_name, estimator in models.items():
-        # Cada pipeline recibe copias independientes; no se comparten objetos ya ajustados.
         candidate = Pipeline([
             ("preprocessor", clone(scenario_preprocessor)),
             ("model", clone(estimator)),
@@ -493,7 +419,7 @@ for scenario_name, requested_columns in escenarios.items():
         trained_models[(scenario_name, model_name)] = candidate
 
 
-# In[34]:
+# In[98]:
 
 
 model_comparison = pd.DataFrame(comparison_rows).sort_values(
@@ -521,10 +447,9 @@ plt.title(f"Matriz de confusión - {best_scenario_name} / {best_model_name}")
 plt.show()
 
 
-# In[35]:
+# In[99]:
 
 
-# Comparación específica de las representaciones de edad por modelo.
 SCENARIOS_EDAD = [
     "base_8_variables", "edad_cuadrado", "grupo_etario",
     "edad_y_edad_cuadrado", "edad_y_grupo_etario",
@@ -551,36 +476,25 @@ best_age_by_model = (
 display(best_age_by_model.round(3))
 
 
-# ### Paso 4.1. Calibracion de hiperparametros
-# 
-# Una vez elegido el escenario de variables, se buscan configuraciones mas estables para cada modelo. `GridSearchCV` entrena cada combinacion dentro de tres particiones estratificadas y conserva el mejor pipeline.
-# 
-# En el Random Forest se prueban profundidad maxima, minimo de observaciones por hoja, numero de arboles y cantidad de variables candidatas por division. `max_depth` y `min_samples_leaf` son los controles principales contra arboles demasiado especificos; `n_estimators` reduce la variabilidad del ensamble.
-# 
-# La eleccion del bosque no usa unicamente el ROC-AUC de validacion. Se calcula `criterio_generalizacion = ROC-AUC_CV - 0.25 * brecha`, donde la brecha es la diferencia entre el ROC-AUC medio de entrenamiento y validacion. Asi se evita elegir un modelo con una ventaja minima de AUC a costa de un sobreajuste grande.
-# 
-# El conjunto de prueba permanece separado durante la seleccion y solo se utiliza para la medicion final.
-# 
-
-# In[ ]:
+# In[100]:
 
 
 from sklearn.model_selection import GridSearchCV
 
-# Se calibra el mejor escenario inicial, no todos los escenarios otra vez.
+
 X_selected = work[best_features].copy()
 X_selected_train = X_selected.iloc[entrenamiento]
 X_selected_test = X_selected.iloc[testeo]
 
 
-# In[48]:
+# In[101]:
 
 
 variable_numerica = X_selected.select_dtypes(include=np.number).columns.tolist()
 variable_categorica = X_selected.select_dtypes(exclude=np.number).columns.tolist()
 
 
-# In[49]:
+# In[102]:
 
 
 tuning_preprocessor = ColumnTransformer([
@@ -596,7 +510,7 @@ tuning_preprocessor = ColumnTransformer([
 
 
 
-# In[61]:
+# In[103]:
 
 
 tuning_grids = {
@@ -625,7 +539,7 @@ tuning_grids = {
 }
 
 
-# In[72]:
+# In[104]:
 
 
 optimizacion = StratifiedKFold(n_splits=3, shuffle=True, random_state=semilla)
@@ -634,7 +548,7 @@ optimizacion_modelos = {}
 optimizacion_busquedas = {}
 
 
-# In[73]:
+# In[105]:
 
 
 for model_name, (estimator, parameter_grid) in tuning_grids.items():
@@ -691,14 +605,14 @@ for model_name, (estimator, parameter_grid) in tuning_grids.items():
     optimizacion_modelos[model_name] = selected_model
 
 
-# In[74]:
+# In[106]:
 
 
 tuned_comparison = pd.DataFrame(optimizacion_filas).sort_values("cv_roc_auc", ascending=False).reset_index(drop=True)
 display(tuned_comparison)
 
 
-# In[75]:
+# In[107]:
 
 
 best_tuned_result = tuned_comparison.iloc[0]
@@ -715,10 +629,9 @@ print(f"ROC-AUC prueba: {best_tuned_result['test_roc_auc']:.3f}")
 print(classification_report(y_test, predictions, digits=3, zero_division=0))
 
 
-# In[66]:
+# In[108]:
 
 
-# Diagnóstico del modelo calibrado: AUC de entrenamiento frente a validación.
 rf_model = optimizacion_modelos["random_forest"]
 rf_train_probabilities = rf_model.predict_proba(X_selected_train)[:, 1]
 rf_test_probabilities = rf_model.predict_proba(X_selected_test)[:, 1]
@@ -734,10 +647,9 @@ print(f"ROC-AUC prueba: {rf_test_auc:.3f}")
 print(f"Brecha entrenamiento-prueba: {rf_train_auc - rf_test_auc:.3f}")
 
 
-# In[71]:
+# In[109]:
 
 
-# Ranking de configuraciones RF: se prioriza validación y se monitorea la varianza.
 rf_search = optimizacion_busquedas["random_forest"]
 rf_candidates = pd.DataFrame({
     "cv_roc_auc": rf_search.cv_results_["mean_test_score"],
@@ -753,16 +665,7 @@ pd.set_option("display.max_colwidth", None)
 display(rf_candidates.head(10))
 
 
-# ### Paso 4. Diagnostico de sesgo, varianza y capacidad de discriminacion
-# 
-# Las curvas de aprendizaje comparan el ROC-AUC obtenido con los datos usados para ajustar el modelo frente al ROC-AUC medido por validacion cruzada al aumentar el numero de observaciones. Una brecha grande indica varianza o overfitting; valores bajos y cercanos indican sesgo alto.
-# 
-# Se comparan tambien las curvas ROC sobre el mismo conjunto de prueba. El ROC-AUC mide la capacidad de ordenar pacientes con mayor probabilidad de egreso por mejoria, sin depender de un unico umbral.
-# 
-# El reporte `reporte_sesgo_varianza.csv` conserva la brecha final de cada clasificador. Para este proyecto, el Random Forest regularizado busca mantener la mejor discriminacion posible reduciendo la diferencia entre entrenamiento y validacion mediante `max_depth`, `min_samples_leaf`, `max_features` y un ensamble de muchos arboles.
-# 
-
-# In[76]:
+# In[110]:
 
 
 from sklearn.metrics import auc, roc_curve
@@ -772,7 +675,6 @@ X_best = work[best_features].copy()
 X_best_train = X_best.iloc[entrenamiento]
 X_best_test = X_best.iloc[testeo]
 
-# Curvas de aprendizaje: una gráfica por modelo en el escenario seleccionado.
 fig, axes = plt.subplots(2, 2, figsize=(14, 10), sharey=True)
 axes = axes.ravel()
 learning_curve_rows = []
@@ -819,7 +721,6 @@ plt.show()
 learning_curve_report = pd.DataFrame(learning_curve_rows)
 display(learning_curve_report.sort_values("brecha_final_entrenamiento_validacion"))
 
-# Curvas ROC: todos los modelos comparten X_best_test y y_test.
 plt.figure(figsize=(10, 7))
 for model_name in models:
     candidate = trained_models[(best_scenario_name, model_name)]
@@ -839,7 +740,7 @@ plt.show()
 learning_curve_report.to_csv(OUTPUT_DIR / "reporte_sesgo_varianza.csv", index=False, encoding="utf-8-sig")
 
 
-# In[45]:
+# In[111]:
 
 
 for axis, model_name in zip(axes, models):
@@ -884,7 +785,7 @@ plt.show()
 learning_curve_report = pd.DataFrame(learning_curve_rows)
 display(learning_curve_report.sort_values("brecha_final_entrenamiento_validacion"))
 
-# Curvas ROC: todos los modelos comparten X_best_test y y_test.
+
 plt.figure(figsize=(10, 7))
 for model_name in models:
     candidate = trained_models[(best_scenario_name, model_name)]
@@ -904,15 +805,14 @@ plt.show()
 learning_curve_report.to_csv(OUTPUT_DIR / "reporte_sesgo_varianza.csv", index=False, encoding="utf-8-sig")
 
 
-# In[77]:
+# In[112]:
 
 
-# 5.1 Calidad de datos, relación con el objetivo e importancia de variables.
 from sklearn.calibration import calibration_curve
 from sklearn.inspection import permutation_importance
 from sklearn.metrics import average_precision_score, brier_score_loss, precision_recall_curve
 
-# Valores faltantes de las variables del escenario ganador.
+
 missing_summary = (
     work[best_features].isna().mean().mul(100).sort_values(ascending=False)
     .rename("porcentaje_nulos")
@@ -926,7 +826,7 @@ axes[0].set_title("Valores nulos por variable")
 axes[0].set_ylabel("Porcentaje")
 axes[0].tick_params(axis="x", rotation=45)
 
-# Distribución de variables numéricas separada por la clase objetivo.
+
 numeric_best = work[best_features].select_dtypes(include=np.number).columns.tolist()
 if numeric_best:
     long_numeric = work[numeric_best + [columna_objetivo]].melt(
@@ -941,7 +841,7 @@ else:
 fig.tight_layout()
 plt.show()
 
-# Tasa observada de mejoría por categoría o por cuantiles numéricos.
+
 target_rate_rows = []
 for feature in best_features:
     series = work[feature]
@@ -960,7 +860,7 @@ for feature in best_features:
 target_rate = pd.DataFrame(target_rate_rows)
 display(target_rate.sort_values("tasa_mejoria", ascending=False).head(20))
 
-# Importancia por permutación sobre variables originales, sin inspeccionar columnas one-hot.
+
 permutation = permutation_importance(
     model, X_best_test, y_test, scoring="roc_auc", n_repeats=10,
     random_state=semilla, n_jobs=-1,
@@ -981,7 +881,7 @@ plt.title("Importancia por permutación del modelo ganador")
 plt.tight_layout()
 plt.show()
 
-# Calibración y precisión-recall: calidad de las probabilidades y desempeño en desbalance.
+
 probability_bins, observed_rate = calibration_curve(y_test, probabilities, n_bins=10, strategy="quantile")
 precision_curve, recall_curve, _ = precision_recall_curve(y_test, probabilities)
 fig, axes = plt.subplots(1, 2, figsize=(15, 5))
@@ -1005,23 +905,9 @@ permutation_report.to_csv(OUTPUT_DIR / "importancia_permutacion.csv", index=Fals
 target_rate.to_csv(OUTPUT_DIR / "tasa_mejoria_por_variable.csv", index=False, encoding="utf-8-sig")
 
 
-# ### Paso 5. Analisis complementario y explicabilidad
-# 
-# Este bloque revisa si el modelo es util y si sus resultados son razonables para los datos disponibles. Primero resume faltantes del escenario ganador y muestra la distribucion de variables numericas por clase.
-# 
-# Luego calcula la tasa observada de mejoria por categorias o cuantiles. Esta tabla es descriptiva: ayuda a detectar patrones, pero no sustituye la validacion del modelo ni debe confundirse con causalidad.
-# 
-# La importancia por permutacion mide cuanto disminuye el ROC-AUC cuando se desordena una variable en el conjunto de prueba. Una disminucion mayor indica que el modelo depende mas de esa variable; un valor cercano a cero indica aporte limitado.
-# 
-# La curva de calibracion compara probabilidades predichas con proporciones observadas. El Brier score resume el error probabilistico. La curva precision-recall y average precision son especialmente utiles cuando la clase positiva no esta perfectamente balanceada.
-# 
-# Los resultados se guardan en `importancia_permutacion.csv` y `tasa_mejoria_por_variable.csv` para facilitar auditoria y comunicacion del modelo.
-# 
-
-# In[79]:
+# In[113]:
 
 
-# 7. Guardado de datos, resultados y artefactos reproducibles.
 clean_data = X.copy()
 clean_data[columna_objetivo] = y
 clean_data.to_csv(OUTPUT_DIR / "hospitales_preparados.csv", index=False, encoding="utf-8-sig")
@@ -1068,14 +954,3 @@ print("Artefactos guardados en:", OUTPUT_DIR.resolve())
 for artifact in sorted(OUTPUT_DIR.iterdir()):
     print("-", artifact.name)
 
-
-# ### Paso 6. Guardado y reproducibilidad
-# 
-# La ultima celda concentra los artefactos que permiten repetir o consumir el resultado fuera del notebook. `hospitales_preparados.csv` conserva la base procesada; `comparacion_modelos.csv` y `comparacion_modelos_calibrados.csv` guardan las metricas de las alternativas evaluadas.
-# 
-# `reporte_variables.csv`, `reporte_sesgo_varianza.csv`, `importancia_permutacion.csv` y `tasa_mejoria_por_variable.csv` documentan calidad, generalizacion, relevancia y comportamiento descriptivo de las variables.
-# 
-# `modelo_egreso_mejora.joblib` contiene el pipeline completo: imputacion, transformaciones categoricas, escalamiento y Random Forest. Por eso puede cargarse directamente desde `predecir_nuevos.py` o `api_fastapi.py` sin repetir manualmente el preprocesamiento.
-# 
-# `metadata_modelo.json` registra objetivo, codigo positivo, variables, hiperparametros, filas procesadas y metricas. El notebook se ubica en la raiz, mientras sus entradas y reportes permanecen organizados dentro de `Notebooks/Inputs` y `Notebooks/Outputs`.
-# 

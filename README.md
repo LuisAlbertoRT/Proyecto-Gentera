@@ -25,25 +25,6 @@ Ejemplo:
 python entrenar_modelo.py --input Notebooks/Inputs/Hospitales.xlsx --output entregable/Salida
 ```
 
-### `predecir_nuevos.py`
-
-Carga el modelo entrenado y clasifica pacientes de un nuevo Excel. El archivo de entrada debe tener una hoja `Base de datos` con las variables requeridas. Las hojas `Ciudades` y `Enfermedades` son opcionales y se utilizan para agregar descripciones.
-
-El resultado conserva los datos originales y agrega:
-
-- `PROBABILIDAD_EGRESO_MEJORIA`
-- `PREDICCION_EGRESO_MEJORIA`
-- `CLASIFICACION`
-
-Ejemplo:
-
-```bash
-python predecir_nuevos.py \
-  --input Notebooks/Inputs/nuevos_pacientes.xlsx \
-  --model entregable/Salida/modelo_egreso_mejora.joblib \
-  --output entregable/Salida/predicciones.csv
-```
-
 ### `api_fastapi.py`
 
 Expone el modelo como un servicio web para clasificar un paciente individual.
