@@ -181,6 +181,30 @@
       "ultimo_roc_auc_entrenamiento": 0.6104100770038021,
       "ultimo_roc_auc_validacion": 0.6061907373605209,
       "brecha_final_entrenamiento_validacion": 0.00421933964328125
+    },
+    {
+      "modelo": "baseline",
+      "ultimo_roc_auc_entrenamiento": 0.5,
+      "ultimo_roc_auc_validacion": 0.5,
+      "brecha_final_entrenamiento_validacion": 0.0
+    },
+    {
+      "modelo": "regresion_logistica",
+      "ultimo_roc_auc_entrenamiento": 0.6106010622334177,
+      "ultimo_roc_auc_validacion": 0.6063878008441383,
+      "brecha_final_entrenamiento_validacion": 0.004213261389279355
+    },
+    {
+      "modelo": "random_forest",
+      "ultimo_roc_auc_entrenamiento": 0.8312084122131317,
+      "ultimo_roc_auc_validacion": 0.7605921728351009,
+      "brecha_final_entrenamiento_validacion": 0.07061623937803074
+    },
+    {
+      "modelo": "svm_lineal",
+      "ultimo_roc_auc_entrenamiento": 0.6104100770038021,
+      "ultimo_roc_auc_validacion": 0.6061907373605209,
+      "brecha_final_entrenamiento_validacion": 0.00421933964328125
     }
   ],
   "brier_score": 0.18510021216326775,
