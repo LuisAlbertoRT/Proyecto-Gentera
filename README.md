@@ -10,7 +10,7 @@ Los tre archivos ejecutables principales estan en la carpeta base del proyecto:
 
 ### `3) Ejecutable_en_py.py`
 
-Es la version ejecutable de **Importacion y analisis.ipynb** en donde se realizacon todas las pruebas iniciales de los modelos incluyendo el tratamiento de la informacion a detalle, la eleccion de las variables, el modelado, la eleccion del modelo, la calibracion de los hiperparametos, metricas y salidas.
+Es la version ejecutable de **2) Importacion y analisis.ipynb** en donde se realizan todas las pruebas iniciales de los modelos incluyendo el tratamiento de la informacion, la eleccion de variables, el modelado, la calibracion de hiperparametros, metricas y salidas.
 
 - Se debo tomar en cuenta que este el origen de todos los codigos, los siguientes son varaciones de este mismo
 
@@ -75,7 +75,7 @@ La API espera un JSON con las variables del modelo:
 
 `funciones_1.py` contiene las funciones compartidas por los dos scripts: lectura de libros Excel, union con catalogos, construccion del objetivo, ingenieria de variables y preparacion de las columnas del modelo.
 
-## Importacion y analisis.ipynb
+## `2) Importacion y analisis.ipynb`
 
 
 

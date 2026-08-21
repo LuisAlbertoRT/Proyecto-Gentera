@@ -1,7 +1,7 @@
 """Entrena el modelo final desde un Excel y guarda reportes y artefactos.
 
 Uso:
-    python entrenar_modelo.py --input Notebooks/Inputs/Hospitales.xlsx --output entregable/Salida
+    python "4) entrenar_modelo.py" --input Notebooks/Inputs/Hospitales.xlsx --output entregable/Salida
 """
 from __future__ import annotations
 

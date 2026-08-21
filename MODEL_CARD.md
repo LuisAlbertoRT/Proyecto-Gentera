@@ -97,7 +97,7 @@ El flujo realiza:
 
 La evidencia detallada se encuentra en:
 
-- `Importacion y analisis.ipynb`.
+- `2) Importacion y analisis.ipynb`.
 - `Notebooks/Outputs/comparacion_modelos.csv`.
 - `Notebooks/Outputs/comparacion_modelos_calibrados.csv`.
 - `Notebooks/Outputs/reporte_sesgo_varianza.csv`.

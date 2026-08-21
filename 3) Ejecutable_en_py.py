@@ -944,7 +944,7 @@ metadata = {
 try:
     subprocess.run([
         sys.executable, "-m", "jupyter", "nbconvert", "--to", "script",
-        str(Path("Importacion y analisis.ipynb")), "--output-dir", str(OUTPUT_DIR),
+        str(Path("2) Importacion y analisis.ipynb")), "--output-dir", str(OUTPUT_DIR),
         "--output", "pipeline_hospitales.py", "--log-level", "ERROR",
     ], check=True)
 except (subprocess.CalledProcessError, FileNotFoundError) as error:
