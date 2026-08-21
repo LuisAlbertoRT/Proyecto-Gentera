@@ -6,13 +6,17 @@ Proyecto de ciencia de datos para predecir si un paciente egresara por mejoria. 
 
 Los tre archivos ejecutables principales estan en la carpeta base del proyecto:
 
-### `Ejecutable enpy.py`
+### `Ejecutable_en_py.py`
 
-Es la version ejecutavble de **Importacion y analisis.ipynb** en donde se realizacon todas las pruebas iniciales de los modelos incluyendo el tratamiento de la informacion a detalle, la eleccion de las variables, el modelado, la eleccion del modelo, la calibracion de los hiperparametos, metricas y salidas.
+Es la version ejecutable de **Importacion y analisis.ipynb** en donde se realizacon todas las pruebas iniciales de los modelos incluyendo el tratamiento de la informacion a detalle, la eleccion de las variables, el modelado, la eleccion del modelo, la calibracion de los hiperparametos, metricas y salidas.
 
+- Se debo tomar en cuenta que este el origen de todos los codigos, los siguientes son varaciones de este mismo
 
+La recomendacion si se quiere ver los analisis es **Ver el IPYNB o la presentacion ejecutiva disponible en la carpeta**
 
-
+```bash
+python Ejecutable_en_py.py
+```
 
 
 ### `entrenar_modelo.py`
