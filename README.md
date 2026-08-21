@@ -81,9 +81,9 @@ La API espera un JSON con las variables del modelo:
 
 ## Evidencia estadistica del modelo
 
-La carpeta `Notebooks` conserva el analisis completo que sustenta la seleccion del modelo:
+El notebook en la raiz conserva el analisis completo y la carpeta `Notebooks/Outputs` conserva sus resultados estadisticos:
 
-- `Notebooks/Importacion y analisis.ipynb`: notebook reproducible con lectura, catalogos, EDA, limpieza, ingenieria de variables, comparacion de modelos, calibracion y diagnostico de sesgo-varianza.
+- `Importacion y analisis.ipynb`: notebook reproducible ubicado en la raiz, con lectura, catalogos, EDA, limpieza, ingenieria de variables, comparacion de modelos, calibracion y diagnostico de sesgo-varianza.
 - `Notebooks/Outputs/comparacion_modelos.csv`: comparacion de escenarios y clasificadores.
 - `Notebooks/Outputs/comparacion_modelos_calibrados.csv`: resultados de la calibracion de hiperparametros.
 - `Notebooks/Outputs/reporte_sesgo_varianza.csv`: diferencia entre ROC-AUC de entrenamiento y validacion.
