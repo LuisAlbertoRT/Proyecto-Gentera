@@ -28,7 +28,7 @@ from sklearn.model_selection import StratifiedKFold, cross_validate, train_test_
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
-from modelo_utils import (
+from funciones_1 import (
     BASE_FEATURES,
     TARGET_COLUMN,
     add_target,

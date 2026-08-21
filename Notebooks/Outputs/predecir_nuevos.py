@@ -11,7 +11,7 @@ from pathlib import Path
 import joblib
 import pandas as pd
 
-from modelo_utils import enrich_with_catalogs, model_frame, read_workbook
+from funciones_1 import enrich_with_catalogs, model_frame, read_workbook
 
 
 def main() -> None:

@@ -1,0 +1,130 @@
+# Prediccion de egreso por mejoria
+
+Proyecto de ciencia de datos para predecir si un paciente egresara por mejoria. El entregable automatiza la lectura de nuevos archivos Excel, el uso de catalogos, la preparacion de datos y la clasificacion mediante un Random Forest regularizado.
+
+## Estructura del entregable
+
+Los tres archivos ejecutables principales estan en la carpeta base del proyecto:
+
+### `entrenar_modelo.py`
+
+Entrena nuevamente el modelo a partir de un archivo Excel. Realiza el flujo completo:
+
+- Lee la hoja `Base de datos` y los catalogos.
+- Usa `Estatus` para identificar automaticamente el codigo de egreso por mejoria.
+- Usa `Enfermedades` y `Ciudades` para agregar descripciones de los identificadores.
+- Genera reportes de analisis exploratorio.
+- Limpia los datos mediante imputacion y preparacion dentro de un pipeline.
+- Construye la variable objetivo `EGRESO_MEJORIA`.
+- Entrena y valida el Random Forest.
+- Guarda el modelo, los datos preparados, las metricas y los reportes en `entregable/Salida`.
+
+Ejemplo:
+
+```bash
+python entrenar_modelo.py --input Notebooks/Inputs/Hospitales.xlsx --output entregable/Salida
+```
+
+### `predecir_nuevos.py`
+
+Carga el modelo entrenado y clasifica pacientes de un nuevo Excel. El archivo de entrada debe tener una hoja `Base de datos` con las variables requeridas. Las hojas `Ciudades` y `Enfermedades` son opcionales y se utilizan para agregar descripciones.
+
+El resultado conserva los datos originales y agrega:
+
+- `PROBABILIDAD_EGRESO_MEJORIA`
+- `PREDICCION_EGRESO_MEJORIA`
+- `CLASIFICACION`
+
+Ejemplo:
+
+```bash
+python predecir_nuevos.py \
+  --input Notebooks/Inputs/nuevos_pacientes.xlsx \
+  --model entregable/Salida/modelo_egreso_mejora.joblib \
+  --output entregable/Salida/predicciones.csv
+```
+
+### `api_fastapi.py`
+
+Expone el modelo como un servicio web para clasificar un paciente individual.
+
+Endpoints disponibles:
+
+- `GET /health`: verifica que el servicio y el modelo esten disponibles.
+- `POST /predict`: devuelve prediccion, probabilidad y clasificacion.
+- `GET /docs`: documentacion interactiva de FastAPI.
+
+Ejemplo de inicio local:
+
+```bash
+uvicorn api_fastapi:app --host 0.0.0.0 --port 8000
+```
+
+La API espera un JSON con las variables del modelo:
+
+```json
+{
+  "DIAS_ESTANCIA": 2,
+  "EDAD": 35,
+  "GENERO": 1,
+  "NIVEL_DE_GRAVEDAD": 3,
+  "IMC": 24.5,
+  "ES_INDIGENA": 2,
+  "ENTIDAD": 15,
+  "MES": 8
+}
+```
+
+## Modulo de apoyo
+
+`funciones_1.py` contiene las funciones compartidas por los tres scripts: lectura de libros Excel, union con catalogos, construccion del objetivo, ingenieria de variables y preparacion de las columnas del modelo.
+
+## Evidencia estadistica del modelo
+
+La carpeta `Notebooks` conserva el analisis completo que sustenta la seleccion del modelo:
+
+- `Notebooks/Importacion y analisis.ipynb`: notebook reproducible con lectura, catalogos, EDA, limpieza, ingenieria de variables, comparacion de modelos, calibracion y diagnostico de sesgo-varianza.
+- `Notebooks/Outputs/comparacion_modelos.csv`: comparacion de escenarios y clasificadores.
+- `Notebooks/Outputs/comparacion_modelos_calibrados.csv`: resultados de la calibracion de hiperparametros.
+- `Notebooks/Outputs/reporte_sesgo_varianza.csv`: diferencia entre ROC-AUC de entrenamiento y validacion.
+- `Notebooks/Outputs/importancia_permutacion.csv`: importancia de cada variable.
+- `Notebooks/Outputs/tasa_mejoria_por_variable.csv`: tasas observadas de mejoria por grupos y cuantiles.
+- `Notebooks/Outputs/metadata_modelo.json`: variables, parametros, metricas y configuracion seleccionada.
+
+El modelo seleccionado es un `RandomForestClassifier` con:
+
+- `n_estimators=500`
+- `max_depth=14`
+- `min_samples_leaf=40`
+- `max_features="sqrt"`
+- `class_weight="balanced"`
+
+Esta configuracion fue elegida para reducir el overfitting. En el diagnostico registrado, la brecha aproximada entre entrenamiento y validacion fue `0.071`, menor que la del bosque inicial. El notebook tambien compara `EDAD`, `EDAD_CUADRADO` y `GRUPO_ETARIO`; `EDAD` obtuvo el mejor comportamiento para los modelos evaluados.
+
+## Salida generada
+
+La carpeta `entregable/Salida` contiene el modelo y los resultados generados:
+
+- `modelo_egreso_mejora.joblib`: pipeline completo con preprocesamiento y clasificador.
+- `datos_preparados.csv`: datos enriquecidos y preparados.
+- `datos_modelo.csv`: variables usadas por el modelo y objetivo.
+- `metadata_modelo.json`: metadatos y metricas.
+- Reportes EDA en formato CSV.
+
+La carpeta `entregable/Docker` contiene el `Dockerfile`, `docker-compose.yml`, las dependencias y la documentacion de ejecucion en contenedor.
+
+## Docker
+
+Desde la raiz del proyecto:
+
+```bash
+docker compose -f entregable/Docker/docker-compose.yml up --build
+```
+
+La API quedara disponible en `http://localhost:8000/docs`.
+
+Para instalar dependencias sin Docker:
+
+```bash
+pip install -r entregable/Docker/requirements.txt
+```

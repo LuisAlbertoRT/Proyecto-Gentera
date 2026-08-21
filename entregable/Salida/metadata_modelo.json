@@ -1,0 +1,53 @@
+{
+  "model_type": "RandomForestClassifier",
+  "features": [
+    "DIAS_ESTANCIA",
+    "EDAD",
+    "GENERO",
+    "NIVEL_DE_GRAVEDAD",
+    "IMC",
+    "ES_INDIGENA",
+    "ENTIDAD",
+    "MES"
+  ],
+  "target": "EGRESO_MEJORIA",
+  "positive_class": "egreso por mejoria",
+  "improvement_status_code": "2",
+  "random_state": 42,
+  "rows": 29894,
+  "catalog_report": {
+    "enfermedades_sin_match": 0,
+    "entidades_sin_match": 0
+  },
+  "metrics": {
+    "cv_roc_auc_mean": 0.7574819311863242,
+    "test_roc_auc": 0.7692958484069607,
+    "test_f1": 0.8202413720093161,
+    "test_precision": 0.9478835331539026,
+    "test_recall": 0.7228960626982646,
+    "test_accuracy": 0.7160060210737581,
+    "brier_score": 0.18726891033076276,
+    "average_precision": 0.9632741208208135
+  },
+  "parameters": {
+    "bootstrap": true,
+    "ccp_alpha": 0.0,
+    "class_weight": "balanced",
+    "criterion": "gini",
+    "max_depth": 14,
+    "max_features": "sqrt",
+    "max_leaf_nodes": null,
+    "max_samples": null,
+    "min_impurity_decrease": 0.0,
+    "min_samples_leaf": 40,
+    "min_samples_split": 2,
+    "min_weight_fraction_leaf": 0.0,
+    "monotonic_cst": null,
+    "n_estimators": 500,
+    "n_jobs": -1,
+    "oob_score": false,
+    "random_state": 42,
+    "verbose": 0,
+    "warm_start": false
+  }
+}

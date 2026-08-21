@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.venv/
+.git/
+.ipynb_checkpoints/
+Notebooks/Inputs/
+Notebooks/Outputs/
+*.ipynb
+prueba_*.csv

@@ -1,7 +1,7 @@
 """Entrena el modelo final desde un Excel y guarda reportes y artefactos.
 
 Uso:
-    python entrenar_modelo.py --input Inputs/Hospitales.xlsx --output Outputs
+    python entrenar_modelo.py --input Notebooks/Inputs/Hospitales.xlsx --output entregable/Salida
 """
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ from sklearn.model_selection import StratifiedKFold, cross_validate, train_test_
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
-from modelo_utils import (
+from funciones_1 import (
     BASE_FEATURES,
     TARGET_COLUMN,
     add_target,
@@ -93,7 +93,7 @@ def save_eda(data: pd.DataFrame, output: Path) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", required=True, help="Excel con Base de datos y catalogos")
-    parser.add_argument("--output", default="Outputs", help="Directorio de salida")
+    parser.add_argument("--output", default="entregable/Salida", help="Directorio de salida")
     args = parser.parse_args()
     output = Path(args.output)
     output.mkdir(parents=True, exist_ok=True)

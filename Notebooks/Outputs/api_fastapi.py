@@ -19,7 +19,7 @@ from pydantic import BaseModel, Field
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from modelo_utils import BASE_FEATURES, model_frame
+from funciones_1 import BASE_FEATURES, model_frame
 
 DEFAULT_MODEL_PATH = Path(__file__).resolve().parent / "modelo_egreso_mejora.joblib"
 MODEL_PATH = Path(os.getenv("MODEL_PATH", str(DEFAULT_MODEL_PATH)))
