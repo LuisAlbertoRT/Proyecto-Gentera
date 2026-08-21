@@ -1,0 +1,12 @@
+services:
+  api:
+    build: .
+    container_name: gentera-api
+    ports:
+      - "8000:8000"
+    environment:
+      MODEL_PATH: /app/modelo_egreso_mejora.joblib
+    volumes:
+      - ./Notebooks/Inputs:/app/data:ro
+      - ./artifacts:/app/artifacts
+    restart: unless-stopped
