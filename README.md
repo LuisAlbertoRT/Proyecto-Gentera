@@ -2,6 +2,8 @@
 
 Proyecto de ciencia de datos para predecir si un paciente egresara por mejoria. El entregable automatiza la lectura de nuevos archivos Excel, el uso de catalogos, la preparacion de datos y la clasificacion mediante un Random Forest regularizado.
 
+Consulta la [ficha tecnica del modelo](MODEL_CARD.md) para conocer su objetivo, variables, metricas, limitaciones, riesgos y recomendaciones de uso.
+
 ## Estructura del entregable
 
 Los tre archivos ejecutables principales estan en la carpeta base del proyecto:
